@@ -52,21 +52,46 @@ The nodes, pods, containers and others are orchestrated by Kubernetes via Kubect
 
 
 ***
-## Deploy a stateless application
+## Deploy an application (Hard way)
 
 ### Create a Cluster
 You can create a cluster in either the command line or in the Cloud Console UI. Go to Kubernetes Engine / Cluster and click on Create Cluster
 I would recommend creating everything from now on in the same Region and Zone.
 Example: ***us-central1-c*** (region: ***us-central***; zone: ***c***)
 
-### Create an image
-* This next step is really primitive because you have to manually create an image in your local Docker Desktop Image Registry, then push it to the **Container Registry** (This is the Google Image Registry).
+### Install Google Cloud SDK to your laptop
+With this SDK you can run gcloud from your local terminal instead of using the remote **Cloud Shell** terminal available in the browser.
+Actually, you may never need this local SDK in the future, but now you need to upload your local Docker Images to the **Container Registry** (This is the Google Image Registry).
 
+* Install Google Cloud SDK to your laptop - https://cloud.google.com/sdk/docs .
+    > Google Cloud SDK command lines only work with windows terminal CMD. If you want it to work with Git Bash, you need to install Python.
+* Start **Google Cloud SDK Shell** (This is a CMD terminal)
+* Make sure you are in the VPN because next step will config the VPN.
+* Run ***gcloud init*** to connect to your GCP project (zinc-proton-27291)
+* gcloud will throw an error due to VPN limitations. This error is expected
+
+    ![vpn error](./docs/vpn-error.png)
+
+* Config the VPN:
+    * Do you have a network proxy you would like to set in gcloud (Y/n)?  y
+    * Select the proxy type:  ***HTTP***
+    * Enter the proxy host address: ***webproxystatic-bc.tsl.telus.com***
+    * Enter the proxy port: ***8080***
+    * Is your proxy authenticated (y/N)?  ***y***
+    * Enter the proxy username: ***tid***
+    * Enter the proxy password: ***12345***
+* After the VPN config, it requests your GCP credentials and the project to select (zinc-proton-27291)
+
+### Create an image
 * Enable the Container Registry for your project (Zinc Proton). Try either following options, I am really not sure what I‘ve done to get this working:
     * https://console.cloud.google.com/apis/library/containerregistry.googleapis.com
     * Or go to menu Tools / Container Registry
 * Install a Docker Desktop in your laptop
-* Install Google Cloud SDK to your laptop - https://cloud.google.com/sdk/docs . As far as I remember the connection between your laptop and GCP is handled here.
+
+**gcr.io** hosts images in data centers in the United States, but there are other locations.
+
+* In the Google Cloud SDK terminal, go to the root folder of the sample-gke project and build the local docker image. If it is your first ever docker build you may have VPN issues.
+    * ***/sample-gke/docker build -t sample-gke:v1 .***
 
 > In the future, these steps will be achieved by **Cloud Build** and **Spinnaker** that will pull your project from github automatically, and build the image in GKE. However, it is good to understand how the manual fashion works to have a better idea how the full process work.
 
