@@ -1,5 +1,5 @@
 {
-  "name": "hello-gke",
+  "name": "sample-gke",
   "version": "0.0.1",
   "private": true,
   "scripts": {
