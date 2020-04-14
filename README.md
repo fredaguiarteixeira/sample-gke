@@ -52,7 +52,7 @@ The nodes, pods, containers and others are orchestrated by Kubernetes via Kubect
 
 
 ***
-## Deploy an application (Hard way)
+## Deploy an application (From your local Docker)
 
 ### Create a Cluster
 You can create a cluster in either the command line or in the Cloud Console UI. Go to Kubernetes Engine / Cluster and click on Create Cluster
@@ -62,31 +62,68 @@ Example: ***us-central1-c*** (region: ***us-central***; zone: ***c***)
 ### Install Google Cloud SDK to your laptop
 With this SDK you can run gcloud from your local terminal instead of using the remote **Cloud Shell** terminal available in the browser.
 Actually, you may never need this local SDK in the future, but now you need to upload your local Docker Images to the **Container Registry** (This is the Google Image Registry).
+Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows Subsystem for Linux).
 
+#### Windows
+* Install Docker Desktop for Windows. See https://docs.docker.com/docker-for-windows/install/
 * Install Google Cloud SDK to your laptop - https://cloud.google.com/sdk/docs .
     > Google Cloud SDK command lines only work with windows terminal CMD. If you want it to work with Git Bash, you need to install Python.
-* Start **Google Cloud SDK Shell** (This is a CMD terminal)
+* Start **Google Cloud SDK Shell** (I guess this is just a simple CMD terminal, I am really not sure)
 * Make sure you are in the VPN because next step will config the VPN.
 * Run ***gcloud init*** to connect to your GCP project (zinc-proton-272919)
-* gcloud will throw an error due to VPN limitations. This error is expected
+* gcloud might throw an error due to VPN limitations:
 
     ![vpn error](./docs/vpn-error.png)
 
-* Config the VPN:
-    * Do you have a network proxy you would like to set in gcloud (Y/n)?  y
-    * Select the proxy type:  ***HTTP***
-    * Enter the proxy host address: ***`webproxystatic-bc.tsl.telus.com`***
-    * Enter the proxy port: ***8080***
-    * Is your proxy authenticated (y/N)?  ***y***
-    * Enter the proxy username: ***tid***
-    * Enter the proxy password: ***12345***
+* Config the VPN.
 * After the VPN config, it requests your GCP credentials and the project to select (zinc-proton-272919)
+* Install a Docker Desktop in your laptop
+
+#### Ubuntu on WSL (Windows Subsystem for Linux)
+
+* Docker Desktop for Windows
+    * Install Docker Desktop for Windows. See https://docs.docker.com/docker-for-windows/install/
+    * Righ click on the tray and select Settings
+        
+        ![docker-icon](./docs/docker-icon.png)
+
+    * Righ click on the tray and select Settings
+    * On General, check: **Expose daemon on tcp://localhost:2375 without TLS**. The Docker CLI in Ubunutu will refer to this Docker daemon. 
+
+        ![docker daemon](./docs/docker-daemon.png)
+        > It mentions *use with caution* because it won't be encrypted (no TLS). However, do not bother with the vulnerability as you are exposing the Docker daemon only to your laptop.
+* Ubuntu on WSL
+    * Follow instructions on https://docs.microsoft.com/en-us/windows/wsl/install-win10 (Ubuntu 18.04 LTS)
+    * Open the Ubuntu terminal
+    * Update the apt package list: \
+    **sudo apt-get update -y**
+    * Install Docker's dependencies: \
+    **sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common**
+    * Download  Docker's public PGP key: \
+    **curl -fsSL `https://download.docker.com/linux/ubuntu/gpg` | sudo apt-key add -**
+    * Verify the fingerprint: \
+    **sudo apt-key fingerprint 0EBFCD88**
+    * Add the stable Docker upstream repository: \
+    **sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"**
+    * Update the apt package list (for the new apt repo) \
+    **sudo apt-get update -y**
+    * Install the latest version of Docker \
+    **sudo apt-get install -y docker-ce**
+    * Allow your user to access the Docker CLI without root access \
+    **sudo usermod -aG docker $USER**
+    * For some reason you need to add **export PATH="$PATH:$HOME/.local/bin"** to your PATH. Open **~/.profile** and copy \
+    **export PATH="$PATH:$HOME/.local/bin"**
+    * Update your changes \
+    **source ~/.profile**
+    * Connect to the remote Docker daemon that has been exposed earlier at ***localhost:2375***. Open **~/.bashrc** and copy \
+     **export DOCKER_HOST=tcp://localhost:2375**
+    * Update your changes \
+    **source ~/.bashrc**
 
 ### Create the image
 * Enable the Container Registry for your project (Zinc Proton). Try either following options, I am really not sure what I‘ve done to get this working:
     * https://console.cloud.google.com/apis/library/containerregistry.googleapis.com
     * Or go to menu Tools / Container Registry
-* Install a Docker Desktop in your laptop
 
 * In the Google Cloud SDK terminal, go to the root folder of the sample-gke project. If it is your first ever docker build you may have VPN issues.
 * Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/zinc-proton-272919/sample-gke:v1 .`***
