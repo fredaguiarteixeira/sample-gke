@@ -76,8 +76,7 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
     ![vpn error](./docs/vpn-error.png)
 
 * Config the VPN.
-* After the VPN config, it requests your GCP credentials and the project to select (zinc-proton-272919)
-* Install a Docker Desktop in your laptop
+* After the VPN config, it requests your GCP credentials and the project to select (zinc-proton-272919). Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
 
 #### Ubuntu on WSL (Windows Subsystem for Linux)
 
@@ -93,6 +92,12 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
         ![docker daemon](./docs/docker-daemon.png)
         > It mentions *use with caution* because it won't be encrypted (no TLS). However, do not bother with the vulnerability as you are exposing the Docker daemon only to your laptop.
 * Ubuntu on WSL
+
+    ![ubuntu-docker-daemon](./docs/ubuntu-docker-daemon.png)
+    > Ubuntu will be installed as a Windows subsystem, that is, it can share a few resources but it is still sort of indepent from Windows (I hope). \
+    A Docker client will be added to Ubuntu and connected to the *Docker Desktop* via TCP. \
+    The docker images and containers are maintained in the *Docker Desktop*.
+
     * Follow instructions on https://docs.microsoft.com/en-us/windows/wsl/install-win10 (Ubuntu 18.04 LTS)
     * Open the Ubuntu terminal
     * Update the apt package list: \
@@ -119,6 +124,14 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
      **export DOCKER_HOST=tcp://localhost:2375**
     * Update your changes \
     **source ~/.bashrc**
+    * Test Docker \
+    **docker info**
+    * Run ***gcloud init*** to connect to your GCP project (zinc-proton-272919). You may be asked to authenticate to your GCP account, then run **gcloud auth configure-docker**
+    * List your GKE projects
+    **gcloud projects list**
+
+### GCP Authentication
+* In case you need to login again: ***gcloud auth login***
 
 ### Create the image
 * Enable the Container Registry for your project (Zinc Proton). Try either following options, I am really not sure what I‘ve done to get this working:
@@ -128,12 +141,16 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
 * In the Google Cloud SDK terminal, go to the root folder of the sample-gke project. If it is your first ever docker build you may have VPN issues.
 * Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/zinc-proton-272919/sample-gke:v1 .`***
 * To view the image you just created: ***`docker images`***
+* Push your image to the *GCP Container Registry*: ***docker push gcr.io/zinc-proton-272919/sample-gke:v1***
 
 ### Upload the image
 * Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
 * In case you need to login again: ***gcloud auth login***
 * To make sure you are logged in, you can list the GKE projects: ***gcloud projects list***
-* Push the image: ***docker push gcr.io/zinc-proton-272919/sample-gke:v1***
+* Push the image: ***`docker push gcr.io/zinc-proton-272919/sample-gke:v1`***
+* To view your uploaded image, go to the GCP console, in the menu, go to the *Tools* section, select *Container Registry / Images*
 
-> In the future, these steps will be achieved by **Cloud Build** and **Spinnaker** that will pull your project from github automatically, and build the image in GKE. However, it is good to understand how the manual fashion works to have a better idea how the full process work.
+    ![container-registry](./docs/container-registry.png)
+
+### Deploy Image
 
