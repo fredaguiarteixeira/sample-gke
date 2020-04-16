@@ -21,48 +21,36 @@ A cluster consists of at least one cluster master and multiple worker machines c
 
 ![Cluster](./docs/cluster.png)
 
+### Node pool
+It is a group of nodes within a cluster that all have the same configuration.
+
+![node-pool](./docs/node-pool.png)
+
+You can add additional custom node pools of different sizes, zones and types to your cluster. All nodes in any given node pool are identical to one another.
 
 ***
-## Cluster Orchestration
-The nodes, pods, containers and others are orchestrated by Kubernetes via Kubectl, gcloud and the Cloud Console.
+## Create GCP account
 
-* **Cloud Shell** is a shell environment for managing resources hosted on Google Cloud. It comes with kubectl and gcloud.
-
-* **Kubectl** is a command-line client that calls the Kubernetes APIs. It provides the primary command-line interface for running commands against Kubernetes clusters.
-
-* **gcloud** is a tool that provides the primary command-line interface for Google Cloud, and kubectl provides the primary command-line interface for running commands against Kubernetes clusters.
-
-* **Cloud Console**: You can also use the UI instead of Kubectl and gcloud.
-
+In your browser open the Google Cloud Console https://console.cloud.google.com/
+If you are creating a new email account for GCP, make sure to go incognito or to logout other accounts.
+It gives you US $300.00 credit to be spent over a year. That is, you have to be really careful on what you choose, specially on CPU and Memory.
 
 ***
-## Create a GCP Project
+## Create a Project
 
-* Open the Cloud Console UI https://console.cloud.google.com and create a new project. My project's name is **Zinc Proton**
+* Open the Cloud Console UI https://console.cloud.google.com and create a new project. My project's name is ** Sample Project GKE**
 * Select the Project in the UI.
-* Copy the project ID (ex: **zinc-proton-272919**)
+* Copy the project ID (ex: **sample-project-gke**)
 * To select your project in the terminal, open Cloud Shell and select your project in the terminal:
 
     ![cloud-shell-icon](./docs/cloud-shell-icon.png)
 
-* then run ***gcloud config set project zinc-proton-272919***
-* Enable GCE (Google Compute Engine)
-    
-    ![gce](./docs/gce.png)
-
-
 ***
-## Deploy an application (From your local Docker)
-
-### Create a Cluster
-You can create a cluster in either the command line or in the Cloud Console UI. Go to Kubernetes Engine / Cluster and click on Create Cluster
-I would recommend creating everything from now on in the same Region and Zone.
-Example: ***us-central1-c*** (region: ***us-central***; zone: ***c***)
 
 ### Install Google Cloud SDK to your laptop
 With this SDK you can run gcloud from your local terminal instead of using the remote **Cloud Shell** terminal available in the browser.
-Actually, you may never need this local SDK in the future, but now you need to upload your local Docker Images to the **Container Registry** (This is the Google Image Registry).
-Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows Subsystem for Linux).
+Actually, I am not sure if you will need this local SDK in the future, but now you need to upload your local Docker Images to the **Container Registry** (This is the Google Image Registry).
+Next, I will describe the SDK installation on Windows (recommended) and Ubuntu on WSL (Windows Subsystem for Linux).
 
 #### Windows
 * Install Docker Desktop for Windows. See https://docs.docker.com/docker-for-windows/install/
@@ -70,17 +58,17 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
     > Google Cloud SDK command lines only work with windows terminal CMD. If you want it to work with Git Bash, you need to install Python.
 * Start **Google Cloud SDK Shell** (I guess this is just a simple CMD terminal, I am really not sure)
 * Make sure you are in the VPN because next step will config the VPN.
-* Run ***gcloud init*** to connect to your GCP project (zinc-proton-272919)
+* Run ***gcloud init*** to connect to your GCP project (sample-project-gke)
 * gcloud might throw an error due to VPN limitations:
 
     ![vpn error](./docs/vpn-error.png)
 
 * Config the VPN.
-* After the VPN config, it requests your GCP credentials and the project to select (zinc-proton-272919). Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
+* After the VPN config, it requests your GCP credentials and the project to select (sample-project-gke). Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
 
 #### Ubuntu on WSL (Windows Subsystem for Linux)
 
-* Docker Desktop for Windows
+* Install Docker Desktop for Windows (Ubuntu will connect to it)
     * Install Docker Desktop for Windows. See https://docs.docker.com/docker-for-windows/install/
     * Righ click on the tray and select Settings
         
@@ -92,6 +80,7 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
         ![docker daemon](./docs/docker-daemon.png)
         > It mentions *use with caution* because it won't be encrypted (no TLS). However, do not bother with the vulnerability as you are exposing the Docker daemon only to your laptop.
 * Ubuntu on WSL
+    Source: https://nickjanetakis.com/blog/setting-up-docker-for-windows-and-wsl-to-work-flawlessly
 
     ![ubuntu-docker-daemon](./docs/ubuntu-docker-daemon.png)
     > Ubuntu will be installed as a Windows subsystem, that is, it can share a few resources but it is still sort of indepent from Windows (I hope). \
@@ -126,31 +115,76 @@ Next, I will describe the SDK installation on Windows and Ubuntu on WSL (Windows
     **source ~/.bashrc**
     * Test Docker \
     **docker info**
-    * Run ***gcloud init*** to connect to your GCP project (zinc-proton-272919). You may be asked to authenticate to your GCP account, then run **gcloud auth configure-docker**
+    * Run ***gcloud init*** to connect to your GCP project (sample-project-gke). You may be asked to authenticate to your GCP account, then run **gcloud auth configure-docker**
     * List your GKE projects
     **gcloud projects list**
 
 ### GCP Authentication
 * In case you need to login again: ***gcloud auth login***
 
+## Create Billing
+
+* Enable GCE (Google Compute Engine)
+    
+    ![gce](./docs/gce.png)
+
+### Enable GKE and Billing
+
+In the *Cloud Console*, make sure the project *Sample Project GKE* is selected.
+In the left menu, go to *Kubernetes Engine*. Click on *Sign up for a free trial*. Notice that Google provides US$ 300 credit for 1 year and promises to not charge without your permission.
+
+![free-trial](./docs/free-trial.png)
+
+You will be asked to enable billing as well.
+
+### Create a Cluster
+
+The *GKE* environment consists of *Compute Engine* instances grouped together to form a cluster.
+A *Compute Engine* is a VM running in Google data centers, these VM's CPU and memory are scalable and configurable.
+You have to be really careful to create a cluster, because the *Compute Engine* cost depends on the CPU, memory, hardware and location. You don't want to spend all of your credits in an expensive VM.
+There are a list of *Compute Engine* locations, and only a few of them provide free tiers.
+These locations are based on Region and Zones.
+Example: ***us-west1-c*** (region=***us-west1***; zone=***c***)
+
+*Compute Engine* free tier recommendations - For details check https://cloud.google.com/free/docs/gcp-free-tier
+* Your Always Free ***f1-micro VM instance*** limit is by time, not by instance. (Couldn't find this option though, I think it is out of date)
+* Region: ***us-west1*** (The closest free option to Vancouver)
+
+To create the cluste, go to the *Cloud Console* / *Kubernetes Engine* / *Cluster* and click on Create Cluster.
+
+![create-cluster](./docs/create-cluster.png)
+
 ### Create the image
-* Enable the Container Registry for your project (Zinc Proton). Try either following options, I am really not sure what I‘ve done to get this working:
+* Enable the Container Registry for your project ( Sample Project GKE). Try either following options, I am really not sure what I‘ve done to get this working:
     * https://console.cloud.google.com/apis/library/containerregistry.googleapis.com
     * Or go to menu Tools / Container Registry
 
-* In the Google Cloud SDK terminal, go to the root folder of the sample-gke project. If it is your first ever docker build you may have VPN issues.
-* Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/zinc-proton-272919/sample-gke:v1 .`***
+    ![config-docker-proxy](./docs/config-docker-proxy.png)
+
+* In the Google Cloud SDK terminal, go to the root folder of the sample-gke nodejs project.
+* Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/sample-project-gke/sample-gke:v1 .`***
+    > VPN troubleshooting: If it is your first ever docker build you may have VPN issues, specially because the first time it downloads a few images that will be saved on your local docker registry, such as *node:lts-alpine*. You can either turn off the VPN or configure it on the Docker Desktop Settings.\
+    VPN: `http://webproxystatic-bc.tsl.telus.com:8080`
+
+    ![config-docker-proxy](./docs/config-docker-proxy.png)
+
 * To view the image you just created: ***`docker images`***
-* Push your image to the *GCP Container Registry*: ***docker push gcr.io/zinc-proton-272919/sample-gke:v1***
+* Push your image to the *GCP Container Registry*: ***docker push gcr.io/sample-project-gke/sample-gke:v1***
 
 ### Upload the image
 * Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
 * In case you need to login again: ***gcloud auth login***
 * To make sure you are logged in, you can list the GKE projects: ***gcloud projects list***
-* Push the image: ***`docker push gcr.io/zinc-proton-272919/sample-gke:v1`***
+* Push the image: ***`docker push gcr.io/sample-project-gke/sample-gke:v1`***
 * To view your uploaded image, go to the GCP console, in the menu, go to the *Tools* section, select *Container Registry / Images*
 
     ![container-registry](./docs/container-registry.png)
 
+***
 ### Deploy Image
 
+### Command line
+You can deploy your docker image through command lines on either, the Google Cloud SDK or the Cloud Shell (Browser)
+However, let's skip this part.
+
+*kubectl create deployment sample-gke --image=gcr.io/sample-project-gke/sample-gke:v1*
