@@ -139,27 +139,37 @@ You will be asked to enable billing as well.
 
 ### Create a Cluster
 
-The *GKE* environment consists of *Compute Engine* instances grouped together to form a cluster.
-A *Compute Engine* is a VM running in Google data centers, these VM's CPU and memory are scalable and configurable.
-You have to be really careful to create a cluster, because the *Compute Engine* cost depends on the CPU, memory, hardware and location. You don't want to spend all of your credits in an expensive VM.
-There are a list of *Compute Engine* locations, and only a few of them provide free tiers.
-These locations are based on Region and Zones.
+The *GKE* environment consists of *Compute Engine* instances grouped together to form a cluster. \
+A *Compute Engine* is a VM running in Google data centers, these VM's CPU and memory are scalable and configurable.\
+You have to be really careful to create a cluster, because the *Compute Engine* cost depends on the CPU, memory, hardware and location. You don't want to spend all of your credits in an expensive VM.\
+There is a list of *Compute Engine* locations, and only a few of them provide free tiers.\
+These locations are based on Region and Zones.\
 Example: ***us-west1-c*** (region=***us-west1***; zone=***c***)
 
 *Compute Engine* free tier recommendations - For details check https://cloud.google.com/free/docs/gcp-free-tier
-* Your Always Free ***f1-micro VM instance*** limit is by time, not by instance. (Couldn't find this option though, I think it is out of date)
+* Your Always Free ***f1-micro VM instance*** limit is by time, not by instance.
 * Region: ***us-west1*** (The closest free option to Vancouver)
 
-To create the cluste, go to the *Cloud Console* / *Kubernetes Engine* / *Cluster* and click on Create Cluster.
+You have the ability to calculate monthly cost at https://cloud.google.com , select *Pricing* / *Calculators* \
+Here is the calculation for the free tier. You can try other configurations, but keep in mind that you have only US$ 300 in credit.
 
-![create-cluster](./docs/create-cluster.png)
+![calculator](./docs/calculator.png)
+
+#### Enter Cluster info
+
+To create the cluster, go to the *Cloud Console* / *Kubernetes Engine* / *Cluster* and click on *Create Cluster*. \
+Select ***us-west1-c*** (Oregon) and ***f1-micro VM***, and click on *Create*
+
+![create-cluster-basics](./docs/create-cluster-basics.png)
+
+![create-cluster-nodes](./docs/create-cluster-nodes.png)
 
 ### Create the image
 * Enable the Container Registry for your project ( Sample Project GKE). Try either following options, I am really not sure what I‘ve done to get this working:
     * https://console.cloud.google.com/apis/library/containerregistry.googleapis.com
     * Or go to menu Tools / Container Registry
 
-    ![config-docker-proxy](./docs/config-docker-proxy.png)
+    ![container-registry](./docs/container-registry.png)
 
 * In the Google Cloud SDK terminal, go to the root folder of the sample-gke nodejs project.
 * Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/sample-project-gke/sample-gke:v1 .`***
