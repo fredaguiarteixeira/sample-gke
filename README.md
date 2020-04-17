@@ -192,26 +192,30 @@ To create the cluster, go to the *Cloud Console* / *Kubernetes Engine* / *Cluste
 * Create a Pod deployment
     * Go to the **/manifest** folder
     * Run ***kubectl apply -f deployment.yml***
-    * Check if the pods are running: ***kubectl get pods***. Not \<pending\>
+    * Check if the pods are running: ***kubectl get pods***.
 
 * Create a Service
     * Run ***kubectl apply -f services.yml***
-    * Check if the service is ready: ***kubectl get services***.
+    * Check if the service is ready (Not \<pending\>): ***kubectl get services***. \
+    Manifest files:
+        ![deployment-services](./readme_images/deployment-services.png)
+        The service exposes pods either internally in the cluster (type: **ClusterIP**), or externaly as a Load Balancer (type: **LoadBalancer**). \
+        Pods and Services are linked through **labels** and **selectors**.
 
-* Manifest files:
-    ![deployment-services](./readme_images/deployment-services.png)
-    The service exposes pods either internally in the cluster (type: **ClusterIP**), or externaly as a Load Balancer (type: **LoadBalancer**). \
-    Pods and Services are linked through **labels** and **selectors**.
+* FINALLY! Run the service
 
-* Create 
+    ![lauch-service](./readme_images/lauch-service.png)
+    It should display **Hello from sample-gke!**
 
-> If you are planning on building projects this way, I'd recommend to install **Skaffold** https://github.com/GoogleContainerTools/skaffold \
+* Create Ingress
+
+    ![lauch-service](./readme_images/lauch-service.png)
+    It should display **Hello from sample-gke!**
+
+***
+***I'd strongly recommend you to delete the cluster once you are done. Most likely it will spend in a daily basis a few bucks from yours 300 yearly credit.*** \
+***However, there might be a way to shut it down temporarily, or setup some sort or autoscale, etc.***
+***
+
+If you are planning on building projects this way, I'd recommend to install **Skaffold** https://github.com/GoogleContainerTools/skaffold \
 This tool automatically builds and deploy local images to the cloud.
-
-### Deploy Image
-
-### Command line
-You can deploy your docker image through command lines on either, the Google Cloud SDK or the Cloud Shell (Browser)
-However, let's skip this part.
-
-*kubectl create deployment sample-gke --image=gcr.io/sample-project-gke/sample-gke:v1*
