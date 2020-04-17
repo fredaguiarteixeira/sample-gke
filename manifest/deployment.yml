@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sample-gke
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: sample-gke
+    spec:
+      containers:
+        - name: sample-gke
+          image: 'gcr.io/sample-project-gke/sample-gke:v1'
+          ports:
+            - containerPort: 3000

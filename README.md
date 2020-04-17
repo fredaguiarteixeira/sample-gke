@@ -1,7 +1,5 @@
-**GCP / GKE sample project**
+# GCP / GKE sample project
 
-
-***
 ## GCP engines
 **GCE (Google Compute engine)** is Google’s IaaS (Infrastructure as a Service) offering. GCE allows you to create your own virtual machine by allocating hardware-specific resources, e.g. RAM, CPU, Storage. It’s almost like building our own computer/workstation and handling all the details of running it.
 
@@ -46,7 +44,6 @@ It gives you US $300.00 credit to be spent over a year. That is, you have to be 
     ![cloud-shell-icon](./readme_images/cloud-shell-icon.png)
 
 ***
-
 ### Install Google Cloud SDK to your laptop
 With this SDK you can run gcloud from your local terminal instead of using the remote **Cloud Shell** terminal available in the browser.
 Actually, I am not sure if you will need this local SDK in the future, but now you need to upload your local Docker Images to the **Container Registry** (This is the Google Image Registry).
@@ -79,6 +76,7 @@ Next, I will describe the SDK installation on Windows (recommended) and Ubuntu o
 
         ![docker daemon](./readme_images/docker-daemon.png)
         > It mentions *use with caution* because it won't be encrypted (no TLS). However, do not bother with the vulnerability as you are exposing the Docker daemon only to your laptop.
+
 * Ubuntu on WSL
     Source: https://nickjanetakis.com/blog/setting-up-docker-for-windows-and-wsl-to-work-flawlessly
 
@@ -119,15 +117,6 @@ Next, I will describe the SDK installation on Windows (recommended) and Ubuntu o
     * List your GKE projects
     **gcloud projects list**
 
-### GCP Authentication
-* In case you need to login again: ***gcloud auth login***
-
-## Create Billing
-
-* Enable GCE (Google Compute Engine)
-    
-    ![gce](./readme_images/gce.png)
-
 ### Enable GKE and Billing
 
 In the *Cloud Console*, make sure the project *Sample Project GKE* is selected.
@@ -147,24 +136,33 @@ These locations are based on Region and Zones.\
 Example: ***us-west1-c*** (region=***us-west1***; zone=***c***)
 
 *Compute Engine* free tier recommendations - For details check https://cloud.google.com/free/readme_images/gcp-free-tier
-* Your Always Free ***f1-micro VM instance*** limit is by time, not by instance.
+* Free ***f1-micro VM instance*** or the affordable ***n1-starndard-1***.
 * Region: ***us-west1*** (The closest free option to Vancouver)
 
 You have the ability to calculate monthly cost at https://cloud.google.com , select *Pricing* / *Calculators* \
-Here is the calculation for the free tier. You can try other configurations, but keep in mind that you have only US$ 300 in credit.
+Below is the comparasion of the costs of both VM's. You can try other configurations, but keep in mind that you have only US$ 300 yearly in credit.
 
-![calculator](./readme_images/calculator.png)
+**f1-micro VM instance** | **n1-standard-1**
+--- | ---
+![calculator](./readme_images/calculator.png)| ![calculator-n1](./readme_images/calculator-n1.png)
 
 #### Enter Cluster info
 
 To create the cluster, go to the *Cloud Console* / *Kubernetes Engine* / *Cluster* and click on *Create Cluster*. \
-Select ***us-west1-c*** (Oregon) and ***f1-micro VM***, and click on *Create*
+ Select
+ * ***us-west1-c*** (Oregon)
+ * ***Enable autoscaling***
+ * ***n1-starndard-1*** (I've tried the free ***f1-Micro*** but it doesn't have enough memory)
 
 ![create-cluster-basics](./readme_images/create-cluster-basics.png)
 
+![create-cluster-default-pool](./readme_images/create-cluster-default-pool.png)
+
 ![create-cluster-nodes](./readme_images/create-cluster-nodes.png)
 
-#### Coonect to Cluster from local terminal
+* Click on Create
+
+### Connect to the cluster from local terminal
 
 * In the Cloud Console, left menu, click on Kubertes / Cluster / Connect
 
@@ -174,33 +172,42 @@ Select ***us-west1-c*** (Oregon) and ***f1-micro VM***, and click on *Create*
 * List your node pool: ***kubectl get nodes***
 * You can also see your nodes in the Cloud Console. In the left menu, click on *Compute Engine* / *VM Instances*
 
-### Create the image
-* Enable the Container Registry for your project ( Sample Project GKE). Try either following options, I am really not sure what I‘ve done to get this working:
-    * https://console.cloud.google.com/apis/library/containerregistry.googleapis.com
-    * Or go to the left menu, section *Tools* / *Container Registry*
+### Create local image and push it to the cloud
+
+* Clone the sample NodeJS project: https://github.com/fredaguiarteixeira/sample-gke
+* Go to the project's root folder (For Ubuntu WSL: **cd /mnt/c/Users/t828913/dev/sample-gke**$).
+* Build the local docker image: ***`docker build -t gcr.io/sample-project-gke/sample-gke:v1 .`*** (Including the period '.') \
+    Where:
+    *   ***`gcr.io`***: *gcr* stands for *Google Container Registry*. It is the target image registry.
+    *   ***`sample-project-gke`***: The GCP Project.
+    *   ***`sample-gke`***: The NodeJS Project.
+    *   ***`v1`***: The image tag. It could be whatever you want, such as *latest, v1, v2, RC-V1, v.0.0.1, etc*.
+    > VPN troubleshooting: If it is your first ever docker build you may have VPN issues because it will download a few images that are saved on your local docker registry, such as *node:lts-alpine*.
+* To view the image you just created, run ***`docker images`***
+* Push the image to the cloud: ***`docker push gcr.io/sample-project-gke/sample-gke:v1`***
+* To view your uploaded image, go to the *Cloud Console / left menu / Tools section / Container Registry / Images*
 
     ![container-registry](./readme_images/container-registry.png)
 
-* In the Google Cloud SDK terminal, go to the root folder of the sample-gke nodejs project.
-* Build the local docker image [ `docker build -t GCP_CONTAINER_REGISTRY/PROJECT_ID/IMAGE_NAME:TAG .` ]. Example: ***`docker build -t gcr.io/sample-project-gke/sample-gke:v1 .`***
-    > VPN troubleshooting: If it is your first ever docker build you may have VPN issues, specially because the first time it downloads a few images that will be saved on your local docker registry, such as *node:lts-alpine*. You can either turn off the VPN or configure it on the Docker Desktop Settings.\
-    VPN: `http://webproxystatic-bc.tsl.telus.com:8080`
+* Create a Pod deployment
+    * Go to the **/manifest** folder
+    * Run ***kubectl apply -f deployment.yml***
+    * Check if the pods are running: ***kubectl get pods***. Not \<pending\>
 
-    ![config-docker-proxy](./readme_images/config-docker-proxy.png)
+* Create a Service
+    * Run ***kubectl apply -f services.yml***
+    * Check if the service is ready: ***kubectl get services***.
 
-* To view the image you just created: ***`docker images`***
-* Push your image to the *GCP Container Registry*: ***docker push gcr.io/sample-project-gke/sample-gke:v1***
+* Manifest files:
+    ![deployment-services](./readme_images/deployment-services.png)
+    The service exposes pods either internally in the cluster (type: **ClusterIP**), or externaly as a Load Balancer (type: **LoadBalancer**). \
+    Pods and Services are linked through **labels** and **selectors**.
 
-### Upload the image
-* Configure local Docker to authenticate to GCP Container Registry (you need to run this only once): ***gcloud auth configure-docker***
-* In case you need to login again: ***gcloud auth login***
-* To make sure you are logged in, you can list the GKE projects: ***gcloud projects list***
-* Push the image: ***`docker push gcr.io/sample-project-gke/sample-gke:v1`***
-* To view your uploaded image, go to the GCP console, in the menu, go to the *Tools* section, select *Container Registry / Images*
+* Create 
 
-    ![container-registry](./readme_images/container-registry.png)
+> If you are planning on building projects this way, I'd recommend to install **Skaffold** https://github.com/GoogleContainerTools/skaffold \
+This tool automatically builds and deploy local images to the cloud.
 
-***
 ### Deploy Image
 
 ### Command line
