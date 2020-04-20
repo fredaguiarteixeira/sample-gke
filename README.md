@@ -207,10 +207,30 @@ To create the cluster, go to the *Cloud Console* / *Kubernetes Engine* / *Cluste
     ![lauch-service](./readme_images/lauch-service.png)
     It should display **Hello from sample-gke!**
 
-* Create Ingress
+### Ingress
 
-    ![lauch-service](./readme_images/lauch-service.png)
-    It should display **Hello from sample-gke!**
+Ingress is a router that expose multiple services under the same IP address, acting as a reverse proxy and single entry-point, with SSL support.
+Ingress is NOT a type of service, and it is exposed as to the external traffic as a service type ***NodePort***.
+
+Tipically, there are 3 types of services:
+* **ClusterIP**: Exposes the Service on a ***cluster-internal*** IP. Choosing this value makes the Service only reachable from within the cluster..
+* **NodePort**: Exposes the service to ***external traffic***. This is the most primitive way, it gives you service per port.
+* **LoadBalancer**: Exposes the service to ***external traffic*** using the GKE load balancer.
+
+If you are only exposing the services to the external traffic via Ingress, then it makes more sense to expose the services as **ClusterIP**.
+
+In GKE there are 2 types of **Ingress Controllers**:
+    **path**: 
+        * mydomain.com/customer
+        * mydomain.com/product
+    **subdomain**:
+        * customer.mydomain.com
+        * product.mydomain.com
+
+![ingress](./readme_images/ingress.png)
+
+To better understand Ingress, you need to create another Deployment. Instead of writing manifest files, You can use the command line: \
+Run 
 
 ***
 ***I'd strongly recommend you to delete the cluster once you are done. Most likely it will spend in a daily basis a few bucks from yours 300 yearly credit.*** \

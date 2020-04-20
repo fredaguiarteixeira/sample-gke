@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /sample-gke
+        backend:
+          serviceName: sample-gke-service
+          servicePort: 8080
+    #   Add other services here
+    #   - path: /kube
+    #     backend:
+    #       serviceName: other-services
+    #       servicePort: 80
